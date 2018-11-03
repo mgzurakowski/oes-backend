@@ -4,7 +4,8 @@
   "description": "API for OES portal.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,12 @@
   "bugs": {
     "url": "https://github.com/mgzurakowski/oes-backend/issues"
   },
-  "homepage": "https://github.com/mgzurakowski/oes-backend#readme"
+  "homepage": "https://github.com/mgzurakowski/oes-backend#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "express-validator": "^5.3.0",
+    "jsonwebtoken": "^8.3.0",
+    "nodemon": "^1.18.5"
+  }
 }
