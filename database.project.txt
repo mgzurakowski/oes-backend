@@ -64,6 +64,3 @@
     quiz_id         integer
 
     
-
-
-
