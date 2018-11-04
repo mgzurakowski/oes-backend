@@ -8,6 +8,7 @@
     email         varchar
     password      varchar
     regtime       datetime
+    confirm       boolean
 
 * Role
     role_id       auto integer
