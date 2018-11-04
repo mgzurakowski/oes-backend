@@ -14,7 +14,8 @@ const app = express();
 /** ustwaienie formatu application/json */
 app.use(bodyParser.json());
 
-/** ustawienie headerow pod CORS */
+/** ustawienie headerow pod CORS
+ *  bardzo ważnych dla dzialania API */
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader(
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
 
 /** ustawienie routingu */
 const authRoutes = require('./routes/authorisation');
+/** ustawienie routingu /auth dla authRoutes */
 app.use('/auth', authRoutes);
 
 
