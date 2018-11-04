@@ -6,6 +6,8 @@ exports.getTestData =  (req, res, next) => {
     res.status(200).json({info: "Test GET "});
 };
 
+/** akcja wykonywana po dodaniu użytkownika */
+
 exports.addUser = (req, res, next) => {
     var body = req.body;
     const user =  new User(
