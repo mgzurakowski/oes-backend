@@ -17,7 +17,8 @@
 #QUIZ------------------------------------------------------------------
 * Quiz
     quiz_id     auto integer
-    max_answer_time  datetime
+    start time  datatime
+    end time    datatime
     quiz_name        varchar
     (autor)user_id          integer  
 
@@ -57,6 +58,7 @@
     course_id       auto integer
     school_id       integer
     course_name     varchar
+    description     text
 
 * CourseDetails
     course_id       integer
