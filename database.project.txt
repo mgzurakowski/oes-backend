@@ -30,19 +30,19 @@
 * Question
     question_id       auto integer
     question_text     varchar
-    is_active         enum(0,1)
+    is_active         bool
 
 * Question_choices
     choice_id        auto integer
     question_id      integer
     choice_text      varchar
-    is_right_choice  enum(0,1)
+    is_right_choice  bool
 
 * User_question_answer
    user_id      integer
    question_id  integer
    choice_id    integer
-   is_right_choice  enum(0,1)
+   is_right_choice  bool
 
  #SCHOOL------------------------------------------------------------------
 
