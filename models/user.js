@@ -17,8 +17,9 @@ module.exports = class User {
     }
 
     /** funkcja rejestrująca uzytkownika */
-    
+
     register() {
+        // make save in database 
         console.log(this);
     }
 }
