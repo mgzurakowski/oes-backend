@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 
 /** ustawienia dla aplikacji */
 const app = express();
+const sequelize = require('./assets/sequlize');
 
 /** ustwaienie formatu application/json */
 app.use(bodyParser.json());
@@ -31,5 +32,25 @@ const authRoutes = require('./routes/authorisation');
 /** ustawienie routingu /auth dla authRoutes */
 app.use('/auth', authRoutes);
 
-
-app.listen(8080);
+app.use((error, req, res, next) => {
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const data = error.data;
+  res.status(status).json(
+    {
+      message:message,
+      data:data,
+      status:status
+    }
+    );
+});
+// inicjacja bazy danych
+sequelize
+  .sync()
+  .then(
+    result => {
+      app.listen(8080);
+    })
+    .catch(err => {
+      console.log(err);
+    });
