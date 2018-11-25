@@ -12,7 +12,7 @@ const User = sequelize.define('user', {
     },
     role_id : {
         type:Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
     },
     last_name: {
         type:Sequelize.STRING,
@@ -35,5 +35,19 @@ const User = sequelize.define('user', {
         type:Sequelize.BOOLEAN,
         defaultValue: null
     },
+    resetToken: {
+        type:Sequelize.STRING,
+        defaultValue: null
+
+    },
+    resetTokenExpiration: {
+        type:Sequelize.DATE,
+        defaultValue: null
+
+    },
+    authToken: {
+        type:Sequelize.STRING,
+        defaultValue: null
+    }
 });
 module.exports = User;
