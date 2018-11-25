@@ -22,29 +22,29 @@ const User = sequelize.define('user', {
         type:Sequelize.STRING,
         allowNull: false
     },
+
     email: {
         type:Sequelize.STRING,
         allowNull: false,
         unique: true,
     },
+
     password: {
         type:Sequelize.STRING,
         allowNull: false
     },
+
     confirm: {
         type:Sequelize.BOOLEAN,
         defaultValue: null
     },
-    resetToken: {
+
+    confirmCode: {
         type:Sequelize.STRING,
         defaultValue: null
 
     },
-    resetTokenExpiration: {
-        type:Sequelize.DATE,
-        defaultValue: null
 
-    },
     authToken: {
         type:Sequelize.STRING,
         defaultValue: null

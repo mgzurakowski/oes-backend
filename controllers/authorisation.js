@@ -1,14 +1,24 @@
 /** Testowy GET  */
 
-/**  
- *  wysylanie kod potwierdzenia w addUser
- *  wpisanie kodu potwierdzenia w confirmUser
- *  wysyłanie resetu hasla generowanie nowego resetPassword - email przychodzi nowe w resetPassword
- */
 const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+
+var nodemailer = require('nodemailer');
+
+var options = {
+    service: 'gmail',
+    auth: {
+           user: 'oes.mail.test@gmail.com',
+           pass: ''
+       }
+
+
+}
+ 
+var mailer = nodemailer.createTransport(options);
 
 /** test api */
 exports.getTestData =  (req, res, next) => {
@@ -23,6 +33,9 @@ exports.getTestData =  (req, res, next) => {
 /** rejestracja użytkownika, wysyłanie mail z potwierdzeniem */
 
 exports.addUser = (req, res, next) => {
+
+
+    let globalUser;
     const errors = validationResult(req);
     if(!errors.isEmpty())
     {
@@ -48,30 +61,57 @@ exports.addUser = (req, res, next) => {
             last_name: last_name,
             role_id: role_id
         });
+        globalUser = user;
         return user.save();
-})
-    .then(user => {
-        res.status(200).json(
-            {
-                status: 200,
-                message:'Utworzono użytkownika',
-                data: {
-                    user_id: user.user_id,
-                    email: user.email,
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    role_id: user.role_id,
+        })
+        .then(user => {
+            const verificationCode = crypto.randomBytes(32).toString('hex');
+            user.confirmCode = verificationCode;
+            user.save();
+            
+            const mailOptions = {
+                from: 'oes.mail.test@gmail.com', 
+                to: user.email, 
+                subject: 'Twój kod aktywacyjny z OES', 
+                html: '<b>Kod aktywacyjny to: </b>' + verificationCode
+              };
+              mailer.sendMail(mailOptions)
+              .catch(()=> {
+                const error =  new Error('Nie można wysłać kodu z potwierdzeniem');
+                error.statusCode = 401;
+                error.data = errors.array();
+                throw error;
+              });
+
+
+
+            return user;
+            
+        })
+        .then(user => {
+            res.status(200).json(
+                {
+                    status: 200,
+                    message:'Utworzono użytkownika',
+                    data: {
+                        user_id: user.user_id,
+                        email: user.email,
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                        role_id: user.role_id,
+                    }
                 }
-            }
-        );
-    }).catch(
-        err => {
-            if(!err.statusCode) {
-                err.statusCode = 500;
-            }
-        next(err);
-    });
-};
+            );
+        })
+        .catch(
+                    err => {
+                        if(!err.statusCode) {
+                            err.statusCode = 500;
+                        }
+                    next(err);
+                });
+
+        };
 
 
 /** akcja wykonywana przy logowaniu użytkownika */
@@ -159,10 +199,18 @@ exports.passwordChange = (req, res, next) => {
         throw error;
     }
 }
+
 /** wysyła reset hasła na email*/
-exports.sendReset = (req, res, next) => {}
-/** ustala nowe hasło  */
-exports.passwordReset = (req, res, next) => {}
+exports.resetPassword = (req, res, next) => {
+    /** TODO  resetPassword */
+}
+
+
+exports.confirmUser = (req, res, next) => {
+    /** TODO  confirmUser 
+     * dodać spawdzanie na logowaniu
+     */
+}
 
 
 /**

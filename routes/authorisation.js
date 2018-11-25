@@ -33,8 +33,7 @@ router.post('/register',[
                 return Promise.reject('Podany email, już istnieje.');
             }
         });
-    })
-    .normalizeEmail(),
+    }),
     body('password').trim().isLength({min: 5}).withMessage('Proszę podać hasło, mające więcej niż 5 znaków'),
     body('last_name').trim().not().isEmpty().withMessage('Nazwisko wymagane'),
     body('first_name').trim().not().isEmpty().withMessage('Imię wymagane'),
@@ -75,7 +74,7 @@ router.post('/resetPassword', [
             }
         });
     })
-] , authController.sendReset);
+] , authController.resetPassword);
 
 
 /** sprawdza czy użytkownk jest zalogowany */
