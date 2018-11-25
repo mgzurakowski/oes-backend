@@ -1,6 +1,10 @@
 /** Testowy GET  */
 
-
+/**  
+ *  wysylanie kod potwierdzenia w addUser
+ *  wpisanie kodu potwierdzenia w confirmUser
+ *  wysyłanie resetu hasla generowanie nowego resetPassword - email przychodzi nowe w resetPassword
+ */
 const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
@@ -16,10 +20,9 @@ exports.getTestData =  (req, res, next) => {
     );
 };
 
-/** akcja wykonywana po dodaniu użytkownika */
+/** rejestracja użytkownika, wysyłanie mail z potwierdzeniem */
 
 exports.addUser = (req, res, next) => {
-    // todo make validation
     const errors = validationResult(req);
     if(!errors.isEmpty())
     {
@@ -47,13 +50,20 @@ exports.addUser = (req, res, next) => {
         });
         return user.save();
 })
-    .then(result => {
+    .then(user => {
         res.status(200).json(
             {
+                status: 200,
                 message:'Utworzono użytkownika',
-                status: 200
+                data: {
+                    user_id: user.user_id,
+                    email: user.email,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    role_id: user.role_id,
+                }
             }
-            );
+        );
     }).catch(
         err => {
             if(!err.statusCode) {
@@ -62,6 +72,7 @@ exports.addUser = (req, res, next) => {
         next(err);
     });
 };
+
 
 /** akcja wykonywana przy logowaniu użytkownika */
 
@@ -117,9 +128,13 @@ exports.login = (req, res, next) => {
             {
                 res.status(200).json(
                     {
+
                         status: 200,
-                        token: token,
-                        userId: loadedUser.user_id.toString()
+                        data: {
+                            token: token,
+                            userId: loadedUser.user_id.toString()
+                        },
+                        message: "Zalogowany"
                     });
 
             });
@@ -135,36 +150,20 @@ exports.login = (req, res, next) => {
     });
 }
 
-
-/**
- * wysyła reset hasła na email
- */
-exports.sendReset = (req, res, next) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty())
-    {
-        const error =  new Error('Walidacja nie powiodła się');
-        error.statusCode = 422;
-        error.data = errors.array();
+/** zmiana hasła po tym jak użytkownik jest zalogowany */
+exports.passwordChange = (req, res, next) => {
+    let middleWareStatus = req.statusCode;
+    if (middleWareStatus == 401) {
+        const error =  new Error('Walidacja nie powiodła się, token jest nie ważny!');
+        error.statusCode = 401;
         throw error;
     }
 }
+/** wysyła reset hasła na email*/
+exports.sendReset = (req, res, next) => {}
+/** ustala nowe hasło  */
+exports.passwordReset = (req, res, next) => {}
 
-exports.passwordReset = (req, res, next) => {
-
-}
-/**  */
-exports.sendConfirm = (req, res, next) => {
-
-}
-
-exports.acconuntConfirmed = (req, res, next) => {
-
-}
-
-exports.passwordChange = (req, res, next) => {
-
-}
 
 /**
  * sprawdzenie, czy użytkownik jest zalogowany
@@ -176,18 +175,13 @@ exports.isAuth = (req, res, next) => {
         error.statusCode = 401;
         throw error;
     }
-        
         res.status(200).json(
             {
                 status: 200,
-                info: "Zalogowany"
+                data: null,
+                message: "Zalogowany"
             }
         );
-        
-
-
 }
 
-exports.passwordChange = (req, res, next) => {
 
-}

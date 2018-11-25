@@ -40,7 +40,7 @@ module.exports = (req, res, next) => {
             
         }else{
             req.userId = decodedToken.userId;
-            req.statusCode = code;            
+            req.statusCode = code;
         }
         next();
     });
