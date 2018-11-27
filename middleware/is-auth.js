@@ -6,7 +6,7 @@ module.exports = (req, res, next) => {
     const authHeader = req.get('Authorization');
 
     if(!authHeader) {
-        const error = new Error('Nie udana autoryzacja.');
+        const error = new Error('Nie udana autoryzacja. Brak tokenu');
         error.statusCode = 401;
         throw error;
     }

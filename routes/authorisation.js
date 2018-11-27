@@ -61,24 +61,36 @@ router.post('/login',
 , authController.login);
 
 /** reset hasła */
-router.post('/resetPassword', [
+router.post('/resetPassword', authController.resetPassword);
+
+
+/** sprawdza czy użytkownk jest zalogowany, wymagany token  */
+router.get('/isAuth', isAuth, authController.isAuth);
+
+/** sprawdza kod potwierdzajacy email uzytkownika, wymagany token */
+router.post('/confirmUser', [
+
+    body('confirmCode').trim().not().isEmpty().withMessage('Podaj kod aktywacyjny!'),
     body('email').isEmail().withMessage('Proszę podać prawidłowy email!')
-    .custom((value, {req}) => {
-        return User.find({
+    .custom((value) => {
+        return User.findOne({
             where: {
                 email:value,
             }
         }).then(user => {
             if(!user) {
-                return Promise.reject('Podany użytkownik nie istnieje w bazie !');
+                return Promise.reject('Nie ma takiego użytkownika w bazie!');
+            }{
+                if(user.confirm !== null) {
+                    return Promise.reject('Konto zostało potwierdzone wcześniej!');
+                }
             }
         });
-    })
-] , authController.resetPassword);
+    }),
+    
+], isAuth, authController.confirmUser );
 
 
-/** sprawdza czy użytkownk jest zalogowany */
-router.get('/isAuth', isAuth, authController.isAuth);
 
 /** export router-a */
 module.exports = router;

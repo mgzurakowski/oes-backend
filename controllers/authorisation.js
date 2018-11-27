@@ -1,26 +1,55 @@
-/** Testowy GET  */
-
+/** biblioteki  */
 const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
-var nodemailer = require('nodemailer');
 
+/** opcje dla mailera */
 var options = {
     service: 'gmail',
     auth: {
            user: 'oes.mail.test@gmail.com',
-           pass: ''
+           pass: 'STQUX7XETs'
        }
-
-
 }
- 
+
+
+ /** obiekt mailer-a */
 var mailer = nodemailer.createTransport(options);
 
-/** test api */
+/** funkcja walidacji zwraca nam wsztkie zadane pola, jesli przeszla walidacja */
+function validation(req){
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty())
+    {
+        const error =  new Error('Walidacja nie powiodła się');
+        error.statusCode = 401;
+        error.data = errors.array();
+        throw error;
+    }
+    var body = req.body;
+    return body; 
+}
+
+
+/** sprawdzanie tokenu poprawności, jesli routing wymaga logowania */
+
+function checkToken(req){
+
+    let middleWareStatus = req.statusCode;
+    if (middleWareStatus == 401) {
+        const error =  new Error('Walidacja nie powiodła się, token jest nie ważny!');
+        error.statusCode = 401;
+        throw error;
+    }
+}
+ 
+
+/** test działania api */
 exports.getTestData =  (req, res, next) => {
     res.status(200).json(
         {
@@ -31,21 +60,9 @@ exports.getTestData =  (req, res, next) => {
 };
 
 /** rejestracja użytkownika, wysyłanie mail z potwierdzeniem */
-
 exports.addUser = (req, res, next) => {
 
-
-    let globalUser;
-    const errors = validationResult(req);
-    if(!errors.isEmpty())
-    {
-        const error =  new Error('Walidacja nie powiodła się');
-        error.statusCode = 401;
-        error.data = errors.array();
-        throw error;
-    }
-
-    var body = req.body;
+    const body = validation(req);
     const role_id = body['role_id'];
     const last_name  = body['last_name'];
     const first_name = body['first_name'];
@@ -61,7 +78,6 @@ exports.addUser = (req, res, next) => {
             last_name: last_name,
             role_id: role_id
         });
-        globalUser = user;
         return user.save();
         })
         .then(user => {
@@ -118,19 +134,13 @@ exports.addUser = (req, res, next) => {
 
 exports.login = (req, res, next) => {
 
-    const errors = validationResult(req);
-    if(!errors.isEmpty())
-    {
-        const error =  new Error('Walidacja nie powiodła się');
-        error.statusCode = 401;
-        error.data = errors.array();
-        throw error;
-    }
+    const body = validation(req);
 
-    const email = req.body.email;
-    const password = req.body.password;
+    const email = body.email;
+    const password = body.password;
 
     let loadedUser;
+
     User.find({ where: {email:email} })
     /** pobranie user-a */
     .then(
@@ -163,6 +173,8 @@ exports.login = (req, res, next) => {
                 expiresIn: '1d'
             }
         );
+
+
         loadedUser.updateAttributes({'authToken' : token}).then(
             ()=>
             {
@@ -172,7 +184,8 @@ exports.login = (req, res, next) => {
                         status: 200,
                         data: {
                             token: token,
-                            userId: loadedUser.user_id.toString()
+                            userId: loadedUser.user_id.toString(),
+                            userConfirm: loadedUser.confirm
                         },
                         message: "Zalogowany"
                     });
@@ -189,27 +202,58 @@ exports.login = (req, res, next) => {
         next(err);
     });
 }
-
-/** zmiana hasła po tym jak użytkownik jest zalogowany */
-exports.passwordChange = (req, res, next) => {
-    let middleWareStatus = req.statusCode;
-    if (middleWareStatus == 401) {
-        const error =  new Error('Walidacja nie powiodła się, token jest nie ważny!');
-        error.statusCode = 401;
-        throw error;
-    }
-}
-
-/** wysyła reset hasła na email*/
+/** wysyła reset hasła na email, generowane nowe randomowe hasło wysyłane na email*/
 exports.resetPassword = (req, res, next) => {
     /** TODO  resetPassword */
 }
 
+/******************************************************** WYMAGANE LOGOWANIE *************************************************** */
 
+/** zmiana hasła po tym jak użytkownik jest zalogowany */
+exports.passwordChange = (req, res, next) => {
+    checkToken(req);
+
+}
+
+
+/** potwierdza uzytkownika, dzieki podaniu kodu z email */
 exports.confirmUser = (req, res, next) => {
-    /** TODO  confirmUser 
-     * dodać spawdzanie na logowaniu
-     */
+
+    checkToken(req);    
+    const  body = validation(req);
+    const email = body.email;
+    const confirmCode = body.confirmCode;
+
+    User.find({ where: {email:email} }).then (
+        user => {
+            if(user.confirmCode === confirmCode) {
+
+                user.confirm = true;
+                return user.save();
+
+            }else {
+                const error =  new Error('Nie poprawny kod aktywacyjny');
+                error.statusCode = 401;
+                throw error;
+            }
+    }).then(user => {
+                    res.status(200).json(
+                {
+                    status: 200,
+                    data: {
+                        userId: user.user_id.toString(),
+                        email: user.email,
+                        userConfirm: user.confirm
+                        },
+                    message: "Potwierdzono kod!"
+                });
+    })
+    .catch(err => {
+        if(!err.statusCode){
+            err.statusCode = 500;
+        }
+        next(err);
+    });
 }
 
 
@@ -217,12 +261,8 @@ exports.confirmUser = (req, res, next) => {
  * sprawdzenie, czy użytkownik jest zalogowany
  */
 exports.isAuth = (req, res, next) => {
-    let middleWareStatus = req.statusCode;
-    if (middleWareStatus == 401) {
-        const error =  new Error('Walidacja nie powiodła się, token jest nie ważny!');
-        error.statusCode = 401;
-        throw error;
-    }
+        checkToken(req);
+
         res.status(200).json(
             {
                 status: 200,
@@ -231,5 +271,6 @@ exports.isAuth = (req, res, next) => {
             }
         );
 }
+
 
 
