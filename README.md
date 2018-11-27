@@ -1,3 +1,8 @@
 # oes-backend
 
-To run: 1. `npm i` to init project and libs 2.`npm start` in the cmd. It will run on port 8080
+API do systemu oceniania, dla poszczególnych szkół i instytucji edukacyjnych.
+Projet relalizowany w ramach pracy magisterskiej kolegi z pracy
+
+Technologie 
+Backend - Node.js
+Frontend - Angular 6
