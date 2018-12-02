@@ -12,7 +12,7 @@ var options = {
     service: 'gmail',
     auth: {
            user: 'oes.mail.test@gmail.com',
-           pass: 'STQUX7XETs'
+           pass: '4sFrNwUByS'
        }
 }
 
@@ -180,7 +180,6 @@ exports.login = (req, res, next) => {
             {
                 res.status(200).json(
                     {
-
                         status: 200,
                         data: {
                             token: token,
@@ -189,11 +188,7 @@ exports.login = (req, res, next) => {
                         },
                         message: "Zalogowany"
                     });
-
             });
-                        
-
-            
         })
         .catch(err => {
         if(!err.statusCode){
@@ -204,15 +199,103 @@ exports.login = (req, res, next) => {
 }
 /** wysyła reset hasła na email, generowane nowe randomowe hasło wysyłane na email*/
 exports.resetPassword = (req, res, next) => {
-    /** TODO  resetPassword */
+    const  body = validation(req);
+    const email = body.email;
+    let loadedUser = null;
+
+
+
+    const randomValue = crypto.randomBytes(4).toString('hex');
+    
+    User.findOne({ where: {email:email} }).then( user => {
+        loadedUser = user;
+    }).then( ()=>
+    {
+        bcrypt.hash(randomValue, 12).then(hash => {
+            loadedUser.password = hash;
+            loadedUser.save();
+
+            const mailOptions = {
+                from: 'oes.mail.test@gmail.com', 
+                to: loadedUser.email, 
+                subject: 'Twoje nowe hasło', 
+                html: '<b>Nowe hasło to: </b> '+ randomValue
+              };
+            mailer.sendMail(mailOptions);
+
+        })
+    }).catch(err => {
+        if(!err.statusCode){
+            err.statusCode = 500;
+        }
+        next(err);
+    });
+
+
+    res.status(200).json(
+        {
+            status: 200,
+            data: {},
+            message: "Wygenerowano nowe hasło, wysłano na adres email!"
+        });
 }
+
+
+
 
 /******************************************************** WYMAGANE LOGOWANIE *************************************************** */
 
 /** zmiana hasła po tym jak użytkownik jest zalogowany */
-exports.passwordChange = (req, res, next) => {
+exports.changePassword = (req, res, next) => {
     checkToken(req);
+    const  body = validation(req);
+    const email = body.email;
 
+    const new_password = body.new_password;
+    const old_password = body.old_password;
+    let loadedUser;
+
+    User.findOne({ where: {email:email} })
+    .then(user => {
+
+        if(!user){
+            const error = new Error('Podany użytkownik nie istnieje w bazie danych.');
+            error.statusCode = 401;
+            throw error;
+        }
+        loadedUser = user;
+        return bcrypt.compare(old_password, user.password);
+
+    } ).then(isEqual => {
+    
+        if(!isEqual) {
+            const error =  new Error('Błędne hasło');
+            error.statusCode = 401;
+            throw error;
+        }else {
+            bcrypt.hash(new_password, 12).then(hash => {
+                loadedUser.password = hash;
+                loadedUser.save();
+                res.status(200).json(
+                {
+                    status: 200,
+                    data: {},
+                    message: "Hasło zostało zmienione"
+                });
+                
+            }).catch( err=> {
+                if(!err.statusCode){
+                    err.statusCode = 500;
+                }
+                next(err);
+            });
+        }
+    }).catch( err=> {
+        if(!err.statusCode){
+            err.statusCode = 500;
+        }
+        next(err);
+    });
 }
 
 

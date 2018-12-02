@@ -61,11 +61,26 @@ router.post('/login',
 , authController.login);
 
 /** reset hasła */
-router.post('/resetPassword', authController.resetPassword);
+router.post('/resetPassword', [
 
+    body('email').not().isEmpty().withMessage('Podaj prawidłowy email')
+        .custom((value) => {
+            return User.findOne({
+                where: {
+                    email:value,
+                }
+            }).then(user => {
+                if(!user) {
+                    return Promise.reject('Nie ma takiego użytkownika w bazie!');
+                }
+            });
+        })
+
+] , authController.resetPassword);
 
 /** sprawdza czy użytkownk jest zalogowany, wymagany token  */
 router.get('/isAuth', isAuth, authController.isAuth);
+
 
 /** sprawdza kod potwierdzajacy email uzytkownika, wymagany token */
 router.post('/confirmUser', [
@@ -89,6 +104,24 @@ router.post('/confirmUser', [
     }),
     
 ], isAuth, authController.confirmUser );
+
+/** sprawdza czy użytkownk jest zalogowany, wymagany token  */
+router.get('/changePassword',isAuth, [
+
+    body('email').not().isEmpty().withMessage('Podaj prawidłowy email')
+    .custom((value) => {
+        return User.findOne({
+            where: { email:value }
+        }).then(user => {
+            if(!user) {
+                return Promise.reject('Nie ma takiego użytkownika w bazie!');
+            }
+        });
+    }),
+    body('old_password').not().isEmpty().withMessage('Podaj stare hasło'),
+    body('new_password').not().isEmpty().withMessage('Podaj nowe hasło')
+
+], authController.changePassword);
 
 
 
