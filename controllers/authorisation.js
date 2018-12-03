@@ -1,4 +1,4 @@
-/** biblioteki  */
+﻿/** biblioteki  */
 const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -354,6 +354,8 @@ exports.isAuth = (req, res, next) => {
             }
         );
 }
+
+//hacked
 
 
 
