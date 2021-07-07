@@ -38,7 +38,7 @@ router.post('/register',[
     body('last_name').trim().not().isEmpty().withMessage('Nazwisko wymagane'),
     body('first_name').trim().not().isEmpty().withMessage('Imię wymagane'),
     body('role_id').trim().not().isEmpty().withMessage('Wymagana rola użytkownika'),    
-
+// elo
 ], authController.addUser);
 
 /** logowanie  */
